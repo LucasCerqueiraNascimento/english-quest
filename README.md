@@ -64,8 +64,10 @@ Não reaplicar em banco existente. O histórico remoto da migração chama-se
 
 No painel, salve uma aula, clique em **Criar jogo**, revise as imagens e as
 quatro palavras de cada pergunta, salve e marque a aula como **Disponível**.
-O modelo oferece oito ilustrações iniciais de cômodos; podem ser trocadas por
-imagens HTTPS. O aluno tem até três palpites por imagem: 100, 70 ou 50 pontos
+O modelo oferece doze ilustrações iniciais: oito cômodos e quatro móveis ou
+objetos. Elas podem ser trocadas por imagens HTTPS. O aluno pode ouvir a
+pergunta e cada opção em botões próprios. Tem até três palpites por imagem:
+100, 70 ou 50 pontos
 se acertar no primeiro, segundo ou terceiro palpite. Três acertos seguidos
 valem mais 50 pontos; concluir a partida soma 100. Após três partidas, o
 recorde permanece visível. As respostas são avaliadas dentro do banco em uma
