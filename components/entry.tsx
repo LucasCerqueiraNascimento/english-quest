@@ -47,8 +47,7 @@ export function Entry() {
     const form = new FormData(event.currentTarget);
     try {
       const result = await api<{ token?: string; message?: string }>(mode === 'login' ? 'login' : 'register', {
-        code, nickname: form.get('nickname'), pin: form.get('pin'),
-        name: form.get('name'), avatar,
+        code, name: form.get('name'), pin: form.get('pin'), avatar,
       }, 'public');
       if (result.token) {
         sessionStorage.setItem('eq_student', result.token);
@@ -93,8 +92,7 @@ export function Entry() {
         <Notice message={message} error={error}/>
         <form className="quest-form" onSubmit={submit}>
           <label>Código da turma<span className="quest-input"><span className="quest-input-icon" aria-hidden="true">#</span><input value={code} onChange={event => setCode(event.target.value.toUpperCase())} placeholder="Ex.: A1B2C3D4" required minLength={8} maxLength={8} autoCapitalize="characters" autoComplete="off"/></span></label>
-          {mode === 'register' && <label>Seu primeiro nome<span className="quest-input"><span className="quest-input-icon" aria-hidden="true">✦</span><input name="name" required minLength={2} maxLength={40} placeholder="Como a professora chama você?" autoComplete="given-name"/></span></label>}
-          <label>Apelido<span className="quest-input"><span className="quest-input-icon" aria-hidden="true">@</span><input name="nickname" required pattern="[a-zA-Z0-9_]{3,20}" minLength={3} maxLength={20} placeholder="Ex.: explorador_10" autoCapitalize="none" autoComplete="username"/></span><small>Use de 3 a 20 letras sem acento, números ou _.</small></label>
+          <label>Your name<span className="quest-input"><span className="quest-input-icon" aria-hidden="true">✦</span><input name="name" required minLength={3} maxLength={40} placeholder="Seu nome e sobrenome" autoCapitalize="words" autoComplete="name"/></span><small>Use o mesmo nome no cadastro e ao entrar. Se houver outro aluno com esse nome, inclua o sobrenome.</small></label>
           <label>PIN de 4 números<span className="quest-input"><KeyRound size={18} aria-hidden="true"/><input name="pin" type={showPin ? 'text' : 'password'} inputMode="numeric" pattern="[0-9]{4}" minLength={4} maxLength={4} required placeholder="••••" autoComplete={mode === 'login' ? 'current-password' : 'new-password'}/><button type="button" className="quest-reveal" aria-label={showPin ? 'Ocultar PIN' : 'Mostrar PIN'} onClick={() => setShowPin(!showPin)}>{showPin ? <EyeOff size={18}/> : <Eye size={18}/>}</button></span></label>
           {mode === 'register' && <fieldset className="quest-avatar-field"><legend>Escolha seu explorador</legend><div className="quest-avatars">{Object.entries(avatars).map(([key, emoji]) => <button type="button" key={key} aria-label={`Avatar ${key}`} aria-pressed={avatar === key} onClick={() => setAvatar(key)}>{emoji}{avatar === key && <Check size={13} className="quest-avatar-check"/>}</button>)}</div></fieldset>}
           <button className="quest-submit" type="submit" disabled={busy}>{busy ? 'Só um instante…' : mode === 'login' ? 'Entrar na minha turma' : 'Criar meu perfil'}<ArrowRight size={19}/></button>

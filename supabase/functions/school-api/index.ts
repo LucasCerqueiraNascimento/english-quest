@@ -28,6 +28,12 @@ function str(v: unknown,min: number,max: number,label: string) {
   if(typeof v!=='string'||v.trim().length<min||v.trim().length>max) throw new ApiError(400,`Confira ${label}.`);
   return v.trim();
 }
+async function nameKey(name: string) {
+  const base=name.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+    .replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  if(base.length<3) throw new ApiError(400,'Escreva seu nome com pelo menos três letras.');
+  return base.length<=20?base:`${base.slice(0,13)}_${(await digest(base)).slice(0,6)}`;
+}
 function id(v: unknown) { const s=str(v,36,36,'o identificador'); if(!/^[0-9a-f-]{36}$/i.test(s)) throw new ApiError(400,'Identificador inválido.'); return s; }
 function pin(v: unknown) { if(typeof v!=='string'||!/^\d{4}$/.test(v)) throw new ApiError(400,'O PIN deve ter quatro números.'); return v; }
 function check<T>(r: {data:T;error:unknown}) { if(r.error) throw new ApiError(503,'Não foi possível salvar ou consultar. Tente novamente.'); return r.data; }
@@ -71,26 +77,28 @@ Deno.serve(async req=>{
       await limit(`${action}:ip:${ip}`,action==='login'?30:10);
       const code=str(b.code,8,8,'o código da turma').toUpperCase();
       if(!/^[A-F0-9]{8}$/.test(code)) throw new ApiError(400,'Confira o código da turma.');
-      const nick=str(b.nickname,3,20,'o apelido').toLowerCase();
-      if(!/^[a-z0-9_]+$/.test(nick)) throw new ApiError(400,'Use letras sem acento, números ou _ no apelido.');
+      const name=typeof b.name==='string'?str(b.name,3,40,'seu nome').replace(/\s+/g,' '):null;
+      // The nickname branch keeps accounts made by older versions accessible.
+      const nick=b.nickname!==undefined?str(b.nickname,3,20,'o identificador').toLowerCase():name?await nameKey(name):'';
+      if(!/^[a-z0-9_]{3,20}$/.test(nick)) throw new ApiError(400,'Confira seu nome.');
       const p=pin(b.pin);
       await limit(`${action}:account:${code}:${nick}`,action==='login'?5:3);
       const c=check(await db.from('classes').select('id').eq('join_code',code).eq('archived',false).maybeSingle());
-      if(!c) throw new ApiError(400,'Confira o código, apelido e PIN com a professora.');
+      if(!c) throw new ApiError(400,'Confira o código da turma, seu nome e o PIN com a professora.');
       if(action==='register') {
-        const name=str(b.name,2,40,'seu primeiro nome');
+        if(!name) throw new ApiError(400,'Informe seu nome.');
         const avatar=str(b.avatar,1,12,'o avatar');
         if(!['rocket','cat','star','planet','book','bolt'].includes(avatar)) throw new ApiError(400,'Escolha um avatar.');
         const salt=random();
         const r=await db.rpc('eq_register_student',{p_class:c.id,p_name:name,p_nick:nick,p_avatar:avatar,p_hash:await pinHash(p,salt),p_salt:salt});
-        if(r.error?.code==='23505') throw new ApiError(409,'Esse apelido já está em uso nesta turma. Escolha outro.');
+        if(r.error?.code==='23505') throw new ApiError(409,'Já há um cadastro com esse nome nesta turma. Informe também o sobrenome ou fale com a professora.');
         check(r);
         return reply({ok:true,message:'Cadastro enviado! Aguarde a aprovação da professora.'});
       }
       const s=check(await db.from('students').select('id,status').eq('class_id',c.id).eq('nickname',nick).maybeSingle());
       const cred=s?check(await db.from('student_credentials').select('pin_hash,salt').eq('student_id',s.id).maybeSingle()):null;
       const calculated=await pinHash(p,cred?.salt||'constant-dummy-salt');
-      if(!s||!cred||!equal(calculated,cred.pin_hash)) throw new ApiError(401,'Confira o código, apelido e PIN com a professora.');
+      if(!s||!cred||!equal(calculated,cred.pin_hash)) throw new ApiError(401,'Confira o código da turma, seu nome e o PIN com a professora.');
       if(['disabled','rejected'].includes(s.status)) throw new ApiError(403,'Seu acesso não está disponível. Fale com a professora.');
       const token=random();
       check(await db.from('student_sessions').delete().lt('expires_at',new Date().toISOString()));

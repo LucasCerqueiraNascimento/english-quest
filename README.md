@@ -11,8 +11,8 @@ primeiro jogo de associação entre imagens e palavras.
 
 - Conta administrativa com e-mail verificado e lista de acesso no servidor.
 - Turmas, dias da semana, códigos, convites via link e QR Code, arquivamento.
-- Autocadastro do aluno com primeiro nome, apelido e avatar; aprovação manual.
-- Login com código, apelido e PIN de quatro dígitos, com limites persistentes.
+- Autocadastro do aluno com nome e avatar; aprovação manual.
+- Login com código da turma, nome e PIN de quatro dígitos, com limites persistentes.
 - Redefinição do PIN, invalidação de sessões, bloqueio de alunos.
 - Aulas em rascunho, agendadas, disponíveis, encerradas ou arquivadas.
 - Área do aluno que mostra exclusivamente aulas disponíveis da sua turma.
