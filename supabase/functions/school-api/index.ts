@@ -184,7 +184,7 @@ Deno.serve(async req=>{
         if(!item||typeof item!=='object') throw new ApiError(400,'Confira as imagens.');
         const i=item as Record<string,unknown>;
         const image=str(i.image_url,2,500,'o endereço da imagem');
-        if(!/^\/rooms\/[a-z0-9-]+\.svg$/.test(image)&&!/^https:\/\/[^\s]+$/i.test(image)) throw new ApiError(400,'Use uma imagem HTTPS ou uma imagem da biblioteca.');
+        if(!/^\/(?:rooms|furniture)\/[a-z0-9-]+\.(?:svg|webp)$/.test(image)&&!/^https:\/\/[^\s]+$/i.test(image)) throw new ApiError(400,'Use uma imagem HTTPS ou uma imagem da biblioteca.');
         const answer=str(i.answer,2,60,'a palavra correta');
         if(!Array.isArray(i.choices)||i.choices.length!==4) throw new ApiError(400,'Cada imagem precisa de quatro opções.');
         const choices=i.choices.map(x=>str(x,2,60,'a opção'));
