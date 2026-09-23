@@ -1,0 +1,22 @@
+[
+  {"image_url":"/rooms/bedroom-3d.webp","answer":"bedroom","choices":["bathroom","bedroom","garage","kitchen"]},
+  {"image_url":"/rooms/kitchen-3d.webp","answer":"kitchen","choices":["kitchen","backyard","bedroom","living room"]},
+  {"image_url":"/rooms/bathroom-3d.webp","answer":"bathroom","choices":["dining room","kitchen","bathroom","garage"]},
+  {"image_url":"/rooms/living-room-3d.webp","answer":"living room","choices":["bathroom","laundry room","garage","living room"]},
+  {"image_url":"/furniture/bed-3d.webp","answer":"bed","choices":["sofa","bed","fridge","stove"]},
+  {"image_url":"/furniture/sofa-3d.webp","answer":"sofa","choices":["sofa","sink","closet","bed"]},
+  {"image_url":"/rooms/dining-room-3d.webp","answer":"dining room","choices":["bedroom","living room","dining room","home office"]},
+  {"image_url":"/rooms/garage-3d.webp","answer":"garage","choices":["backyard","garage","kitchen","laundry room"]},
+  {"image_url":"/rooms/backyard-3d.webp","answer":"backyard","choices":["swimming pool","garage","dining room","backyard"]},
+  {"image_url":"/furniture/fridge-3d.webp","answer":"fridge","choices":["fridge","stove","dishwasher","microwave oven"]},
+  {"image_url":"/rooms/laundry-room-3d.webp","answer":"laundry room","choices":["bathroom","laundry room","kitchen","dining room"]},
+  {"image_url":"/furniture/washing-machine-3d.webp","answer":"washing machine","choices":["dishwasher","fridge","washing machine","microwave oven"]},
+  {"image_url":"/rooms/swimming-pool-3d.webp","answer":"swimming pool","choices":["backyard","garage","laundry room","swimming pool"]},
+  {"image_url":"/rooms/home-office-3d.webp","answer":"home office","choices":["home office","bedroom","living room","dining room"]},
+  {"image_url":"/furniture/closet-3d.webp","answer":"closet","choices":["bed","sofa","closet","TV stand"]},
+  {"image_url":"/furniture/stove-3d.webp","answer":"stove","choices":["dishwasher","stove","fridge","microwave oven"]},
+  {"image_url":"/furniture/sink-3d.webp","answer":"sink","choices":["shower","toilet","bathtub","sink"]},
+  {"image_url":"/furniture/shower-3d.webp","answer":"shower","choices":["shower","sink","toilet","bathtub"]},
+  {"image_url":"/furniture/dishwasher-3d.webp","answer":"dishwasher","choices":["washing machine","stove","dishwasher","fridge"]},
+  {"image_url":"/furniture/microwave-oven-3d.webp","answer":"microwave oven","choices":["dishwasher","microwave oven","fridge","stove"]}
+]

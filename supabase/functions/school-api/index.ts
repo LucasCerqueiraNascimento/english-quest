@@ -179,7 +179,7 @@ Deno.serve(async req=>{
         check(count);if(count.count) throw new ApiError(409,'O jogo já recebeu respostas. Crie uma nova aula para mudar as perguntas.');
       }
       const items=b.items;
-      if(!Array.isArray(items)||items.length<4||items.length>12) throw new ApiError(400,'Inclua de 4 a 12 imagens.');
+      if(!Array.isArray(items)||items.length<4||items.length>24) throw new ApiError(400,'Inclua de 4 a 24 imagens.');
       const rows=items.map((item:unknown,position:number)=>{
         if(!item||typeof item!=='object') throw new ApiError(400,'Confira as imagens.');
         const i=item as Record<string,unknown>;
