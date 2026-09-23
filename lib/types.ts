@@ -1,6 +1,9 @@
 export type Classroom={id:string;name:string;join_code:string;meeting_days:string[];archived:boolean;created_at:string};
 export type Student={id:string;class_id:string;display_name:string;nickname:string;avatar:string;status:'pending'|'approved'|'rejected'|'disabled';created_at:string};
 export type Lesson={id:string;class_id:string;title:string;topic:string;objective:string;lesson_date:string;status:'draft'|'scheduled'|'published'|'closed'|'archived';opens_at:string|null};
-export type Dashboard={email:string;classes:Classroom[];students:Student[];lessons:Lesson[];staff:{email:string}[]};
+export type PictureGame={id:string;lesson_id:string;title:string};
+export type PictureAttemptSummary={game_id:string;student_id:string;score:number;completed_at:string};
+export type PictureAnswerSummary={item_id:string;correct:boolean;mistakes:number;picture_items:{answer:string;game_id:string}};
+export type Dashboard={email:string;classes:Classroom[];students:Student[];lessons:Lesson[];staff:{email:string}[];games:PictureGame[];attempts:PictureAttemptSummary[];answers:PictureAnswerSummary[]};
 export const statusLabels:Record<string,string>={pending:'Aguardando aprovação',approved:'Aprovado',rejected:'Não aprovado',disabled:'Desativado',draft:'Rascunho',scheduled:'Agendada',published:'Disponível',closed:'Encerrada',archived:'Arquivada'};
 export const avatars:Record<string,string>={rocket:'🚀',cat:'🐱',star:'⭐',planet:'🪐',book:'📚',bolt:'⚡'};

@@ -86,7 +86,7 @@ export function Entry() {
     </section>
 
     <section className="quest-access" aria-label="Acesso do aluno">
-      <div className="quest-access-top"><span className="quest-access-label">ESPAÇO DO ALUNO</span><Link href="/teacher/login">Sou professora <ArrowRight size={15}/></Link></div>
+      <div className="quest-access-top"><span className="quest-access-label">ESPAÇO DO ALUNO</span></div>
       <div className="quest-form-wrap">
         <div className="quest-welcome"><div><span className="quest-kicker">HELLO, EXPLORADOR!</span><h2>{mode === 'login' ? 'Que bom te ver!' : 'Sua aventura começa aqui!'}</h2><p>{mode === 'login' ? 'Entre para encontrar a sua turma.' : 'Crie seu perfil e aguarde a professora aprovar.'}</p></div><div className="quest-buddy" aria-label="Mascote sorridente" role="img"><span/></div></div>
         <div className="quest-tabs" role="group" aria-label="Entrar ou criar conta"><button type="button" className={mode === 'login' ? 'active' : ''} aria-pressed={mode === 'login'} onClick={() => changeMode('login')}>Já tenho conta</button><button type="button" className={mode === 'register' ? 'active' : ''} aria-pressed={mode === 'register'} onClick={() => changeMode('register')}>Primeira vez</button></div>

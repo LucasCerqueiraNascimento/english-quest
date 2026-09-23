@@ -1,11 +1,11 @@
-# English Quest — Foundation v0.1
+# English Quest — Picture Challenge v0.2
 
 O logotipo CNA exibido na entrada do aluno foi obtido do site oficial
 (`https://cna.com.br/wp-content/uploads/2024/08/logo-cna-idiomas-color.webp`).
 Ele é um ativo da marca CNA; a identidade English Quest é separada.
 
-Sistema de apoio às aulas de inglês para crianças. Esta entrega implementa a
-plataforma administrativa, não jogos, placares ou respostas simuladas.
+Sistema de apoio às aulas de inglês para crianças, com turmas, aulas e o
+primeiro jogo de associação entre imagens e palavras.
 
 ## Funcionalidades
 
@@ -16,7 +16,9 @@ plataforma administrativa, não jogos, placares ou respostas simuladas.
 - Redefinição do PIN, invalidação de sessões, bloqueio de alunos.
 - Aulas em rascunho, agendadas, disponíveis, encerradas ou arquivadas.
 - Área do aluno que mostra exclusivamente aulas disponíveis da sua turma.
-- Contagens reais de cadastros e aulas. Sem dados fictícios no produto.
+- Picture Challenge editável por aula, com quatro opções por imagem, até três
+  tentativas por aluno, recorde pessoal e relatórios de palavras difíceis.
+- Contagens reais de cadastros, aulas e partidas. Sem dados fictícios no produto.
 - Autorização de outros administradores por e-mail.
 
 ## Arquitetura
@@ -57,7 +59,17 @@ Nunca publique chaves secretas ou arquivos `.env.local` no GitHub.
 
 `supabase/schema.sql` registra o schema inicial aplicado ao projeto dedicado.
 Não reaplicar em banco existente. O histórico remoto da migração chama-se
-`school_foundation`. Alterações futuras devem ser migrações incrementais.
+`school_foundation`. A migração incremental do jogo está em
+`supabase/migrations/20260923050000_picture_challenge.sql`.
+
+No painel, salve uma aula, clique em **Criar jogo**, revise as imagens e as
+quatro palavras de cada pergunta, salve e marque a aula como **Disponível**.
+O modelo oferece oito ilustrações iniciais de cômodos; podem ser trocadas por
+imagens HTTPS. O aluno tem até três palpites por imagem: 100, 70 ou 50 pontos
+se acertar no primeiro, segundo ou terceiro palpite. Três acertos seguidos
+valem mais 50 pontos; concluir a partida soma 100. Após três partidas, o
+recorde permanece visível. As respostas são avaliadas dentro do banco em uma
+transação; o cliente não recebe as respostas de perguntas ainda abertas.
 
 `supabase/functions/school-api/index.ts` é a fonte completa do serviço publicado.
 `verify_jwt=false` é intencional: a função implementa autenticação por ação.
@@ -70,7 +82,7 @@ verificações nem colocar a chave privilegiada no frontend.
 
 1. A administração autoriza um e-mail em `staff_access` (primeiro e-mail já
    configurado durante a implantação; não fica no código público).
-2. Abrir `/teacher/login`, escolher **Primeiro acesso** e definir senha.
+2. Abrir `/teacher/login` diretamente, escolher **Primeiro acesso** e definir senha.
 3. Confirmar o e-mail e voltar ao login.
 4. Em **Acessos**, autorizar o e-mail da professora, que faz o mesmo fluxo.
 
