@@ -115,7 +115,21 @@ Deno.serve(async req=>{
       const lessonIds=lessons.map(x=>x.id);
       const games=lessonIds.length?check(await db.from('picture_games').select('id,lesson_id,title').in('lesson_id',lessonIds)):[];
       const attempts=games.length?check(await db.from('picture_attempts').select('game_id,attempt_number,score,completed_at').eq('student_id',s.id).in('game_id',games.map(g=>g.id))):[];
-      return reply({student:{id:s.id,display_name:s.display_name,nickname:s.nickname,avatar:s.avatar,status:s.status},class:c,lessons,games,attempts});
+      const year=Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Bahia',year:'numeric'}).format(new Date()));
+      let points=0,completedGames=0;
+      if(s.status==='approved') {
+        // Include closed/archived lessons in the yearly score. Count the student's best completed attempt per game.
+        const completed=check(await db.from('picture_attempts').select('game_id,score').eq('student_id',s.id).not('completed_at','is',null));
+        if(completed.length){
+          const best=new Map<string,number>();
+          for(const attempt of completed) best.set(attempt.game_id,Math.max(best.get(attempt.game_id)||0,attempt.score));
+          const scoredGames=check(await db.from('picture_games').select('id,lesson_id').in('id',[...best.keys()]));
+          const scoredLessons=scoredGames.length?check(await db.from('lessons').select('id,lesson_date').eq('class_id',c.id).in('id',scoredGames.map(game=>game.lesson_id))):[];
+          const dates=new Map(scoredLessons.map(lesson=>[lesson.id,lesson.lesson_date]));
+          for(const game of scoredGames){if(dates.get(game.lesson_id)?.startsWith(`${year}-`)){points+=best.get(game.id)||0;completedGames++}}
+        }
+      }
+      return reply({student:{id:s.id,display_name:s.display_name,nickname:s.nickname,avatar:s.avatar,status:s.status},class:c,lessons,games,attempts,scoreboard:{year,points,completedGames}});
     }
     if(action==='student-logout') {
       const token=req.headers.get('x-student-token');
