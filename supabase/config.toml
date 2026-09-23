@@ -1,0 +1,2 @@
+[functions.school-api]
+verify_jwt = false
