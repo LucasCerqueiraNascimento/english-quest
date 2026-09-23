@@ -116,6 +116,14 @@ Os alunos não dependem de e-mail ou SMTP.
 
 ## Verificação
 
+O modelo de **Rooms and Furniture · Level 2** fica em
+`content/rooms-and-furniture-level-2.json`: 20 imagens 3D em ordem de
+dificuldade, com 10 cômodos/áreas e 10 móveis/eletrodomésticos. O editor
+aceita até 24 perguntas. Uma atividade que já recebeu respostas deve ganhar
+uma nova aula/jogo para manter a comparação de pontuações da versão anterior.
+Na partida e no teste da professora aparecem as fases Começando, Explorando
+e Desafio final; a pontuação por resposta segue as mesmas regras existentes.
+
 `npm test` verifica invariantes estáticas de segurança; não substitui testes reais.
 `tests/flow.mjs` verifica autenticação, cadastro, aprovação, publicação, bloqueio,
 reset de PIN e limites de tentativas contra o backend real usando uma conta QA
