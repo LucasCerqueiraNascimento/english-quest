@@ -6,9 +6,15 @@ import {Lesson} from '@/lib/types';
 import {Notice,Loading} from './shared';
 type Item={image_url:string;answer:string;choices:string[]};
 type EditorData={game:{title:string}|null;items:Item[];locked:boolean};
-const words=['bathroom','bedroom','kitchen','living room','dining room','garage','backyard','laundry room'];
-const imageNames=['bathroom','bedroom','kitchen','living-room','dining-room','garage','backyard','laundry-room'];
-const starter:Item[]=words.map((word,i)=>({image_url:`/rooms/${imageNames[i]}.svg`,answer:word,choices:[word,...[1,2,3].map(n=>words[(i+n)%words.length])].sort((a,b)=>((a.charCodeAt(0)+i*3)%7)-((b.charCodeAt(0)+i*3)%7))}));
+const rooms=['bathroom','bedroom','kitchen','living room','dining room','garage','backyard','laundry room'];
+const roomImages=['bathroom','bedroom','kitchen','living-room','dining-room','garage','backyard','laundry-room'];
+const starter:Item[]=[
+ ...rooms.map((word,i)=>({image_url:`/rooms/${roomImages[i]}.svg`,answer:word,choices:[word,rooms[(i+2)%rooms.length],rooms[(i+4)%rooms.length],rooms[(i+6)%rooms.length]]})),
+ {image_url:'/furniture/bed.svg',answer:'bed',choices:['closet','bed','sofa','lamp']},
+ {image_url:'/furniture/fridge.svg',answer:'fridge',choices:['stove','fridge','dishwasher','washing machine']},
+ {image_url:'/furniture/sofa.svg',answer:'sofa',choices:['bed','sofa','sink','TV stand']},
+ {image_url:'/furniture/washing-machine.svg',answer:'washing machine',choices:['fridge','microwave oven','washing machine','dishwasher']},
+];
 export function GameEditor({lesson,onClose,onSaved}:{lesson:Lesson;onClose:()=>void;onSaved:()=>void}){
  const [items,setItems]=useState<Item[]>(starter);const [title,setTitle]=useState('Picture Challenge');const [locked,setLocked]=useState(false);const [loading,setLoading]=useState(true);const [saving,setSaving]=useState(false);const [message,setMessage]=useState('');
  useEffect(()=>{let active=true;api<EditorData>('game-editor',{lesson_id:lesson.id}).then(d=>{if(active){if(d.game){setTitle(d.game.title);setItems(d.items)}setLocked(d.locked)}}).catch(e=>{if(active)setMessage((e as Error).message)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[lesson.id]);
