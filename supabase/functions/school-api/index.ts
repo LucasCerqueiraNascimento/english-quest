@@ -60,7 +60,7 @@ Deno.serve(async req=>{
   if(req.method!=='POST') return reply({error:'Método não permitido.'},405);
   try {
     const raw=await req.text();
-    if(raw.length>8192) throw new ApiError(413,'Solicitação muito grande.');
+    if(raw.length>16000) throw new ApiError(413,'Solicitação muito grande.');
     let b: Record<string,unknown>;
     try { b=JSON.parse(raw); } catch { throw new ApiError(400,'Solicitação inválida.'); }
     if(!b||Array.isArray(b)||typeof b!=='object') throw new ApiError(400,'Solicitação inválida.');
@@ -104,22 +104,90 @@ Deno.serve(async req=>{
         const rows=check(await db.from('lessons').select('id,title,topic,objective,lesson_date,status,opens_at').eq('class_id',c.id).in('status',['published','scheduled']).order('lesson_date',{ascending:false}));
         lessons=rows.filter(x=>x.status==='published'||(x.opens_at&&Date.parse(x.opens_at)<=Date.now()));
       }
-      return reply({student:{id:s.id,display_name:s.display_name,nickname:s.nickname,avatar:s.avatar,status:s.status},class:c,lessons});
+      const lessonIds=lessons.map(x=>x.id);
+      const games=lessonIds.length?check(await db.from('picture_games').select('id,lesson_id,title').in('lesson_id',lessonIds)):[];
+      const attempts=games.length?check(await db.from('picture_attempts').select('game_id,attempt_number,score,completed_at').eq('student_id',s.id).in('game_id',games.map(g=>g.id))):[];
+      return reply({student:{id:s.id,display_name:s.display_name,nickname:s.nickname,avatar:s.avatar,status:s.status},class:c,lessons,games,attempts});
     }
     if(action==='student-logout') {
       const token=req.headers.get('x-student-token');
       if(token) check(await db.from('student_sessions').delete().eq('token_hash',await digest(token)));
       return reply({ok:true});
     }
+    if(action==='game-state'||action==='game-start'||action==='game-answer') {
+      const {s}=await student(req);
+      if(s.status!=='approved') throw new ApiError(403,'Aguarde a aprovação da professora.');
+      const gameId=id(b.game_id);
+      if(action==='game-start'||action==='game-answer') {
+        const result=await db.rpc('eq_picture_step',{p_student:s.id,p_game:gameId,
+          p_item:action==='game-answer'?id(b.item_id):null,
+          p_choice:action==='game-answer'?str(b.choice,2,60,'a resposta'):null});
+        if(result.error) {
+          if(result.error.message.includes('attempt_limit')) throw new ApiError(409,'Você já concluiu as três tentativas.');
+          if(result.error.message.includes('game_unavailable')) throw new ApiError(403,'Este jogo ainda não está disponível.');
+          if(result.error.message.includes('game_empty')) throw new ApiError(409,'O jogo ainda está sendo preparado.');
+          if(result.error.message.includes('attempt_unavailable')) throw new ApiError(409,'Comece uma nova partida para responder.');
+          if(result.error.message.includes('item_order')||result.error.message.includes('choice_invalid')) throw new ApiError(400,'Confira a questão e a resposta.');
+          check(result);
+        }
+        if(action==='game-answer') return reply(result.data);
+      }
+      const g=check(await db.from('picture_games').select('id,lesson_id,title').eq('id',gameId).single());
+      const l=check(await db.from('lessons').select('class_id,status,opens_at').eq('id',g.lesson_id).single());
+      if(l.class_id!==s.class_id||!(l.status==='published'||(l.status==='scheduled'&&l.opens_at&&Date.parse(l.opens_at)<=Date.now()))) throw new ApiError(403,'Este jogo ainda não está disponível.');
+      const items=check(await db.from('picture_items').select('id,position,image_url,choices').eq('game_id',gameId).order('position'));
+      const attempts=check(await db.from('picture_attempts').select('id,score,attempt_number,completed_at').eq('game_id',gameId).eq('student_id',s.id).order('attempt_number',{ascending:false}));
+      const current=attempts[0]?.completed_at?null:attempts[0];
+      const answers=current?check(await db.from('picture_answers').select('item_id,correct,resolved,mistakes,points').eq('attempt_id',current.id)):[];
+      return reply({game:g,items,attempt:current,answers,best:Math.max(0,...attempts.filter(a=>a.completed_at).map(a=>a.score)),attemptsUsed:attempts.length});
+    }
     const user=await staff(req);
     if(action==='dashboard') {
-      const [classes,students,lessons,access]=await Promise.all([
+      const [classes,students,lessons,access,games,attempts,answers]=await Promise.all([
         db.from('classes').select('*').order('created_at',{ascending:false}),
         db.from('students').select('*').order('created_at',{ascending:false}),
         db.from('lessons').select('*').order('lesson_date',{ascending:false}),
         db.from('staff_access').select('email').order('email'),
+        db.from('picture_games').select('id,lesson_id,title'),
+        db.from('picture_attempts').select('game_id,student_id,score,completed_at').not('completed_at','is',null),
+        db.from('picture_answers').select('item_id,correct,mistakes,picture_items(answer,game_id)').eq('resolved',true),
       ]);
-      return reply({email:user.email,classes:check(classes),students:check(students),lessons:check(lessons),staff:check(access)});
+      return reply({email:user.email,classes:check(classes),students:check(students),lessons:check(lessons),staff:check(access),games:check(games),attempts:check(attempts),answers:check(answers)});
+    }
+    if(action==='game-editor') {
+      const game=check(await db.from('picture_games').select('id,lesson_id,title').eq('lesson_id',id(b.lesson_id)).maybeSingle());
+      const items=game?check(await db.from('picture_items').select('position,image_url,answer,choices').eq('game_id',game.id).order('position')):[];
+      const countResult=game?await db.from('picture_attempts').select('id',{count:'exact',head:true}).eq('game_id',game.id):null;
+      if(countResult) check(countResult);
+      const attempts=countResult?.count||0;
+      return reply({game,items,locked:Boolean(attempts)});
+    }
+    if(action==='save-game') {
+      const lessonId=id(b.lesson_id);
+      const lesson=check(await db.from('lessons').select('id,status').eq('id',lessonId).single());
+      const existing=check(await db.from('picture_games').select('id').eq('lesson_id',lesson.id).maybeSingle());
+      if(existing) {
+        const count=await db.from('picture_attempts').select('id',{count:'exact',head:true}).eq('game_id',existing.id);
+        check(count);if(count.count) throw new ApiError(409,'O jogo já recebeu respostas. Crie uma nova aula para mudar as perguntas.');
+      }
+      const items=b.items;
+      if(!Array.isArray(items)||items.length<4||items.length>12) throw new ApiError(400,'Inclua de 4 a 12 imagens.');
+      const rows=items.map((item:unknown,position:number)=>{
+        if(!item||typeof item!=='object') throw new ApiError(400,'Confira as imagens.');
+        const i=item as Record<string,unknown>;
+        const image=str(i.image_url,2,500,'o endereço da imagem');
+        if(!/^\/rooms\/[a-z0-9-]+\.svg$/.test(image)&&!/^https:\/\/[^\s]+$/i.test(image)) throw new ApiError(400,'Use uma imagem HTTPS ou uma imagem da biblioteca.');
+        const answer=str(i.answer,2,60,'a palavra correta');
+        if(!Array.isArray(i.choices)||i.choices.length!==4) throw new ApiError(400,'Cada imagem precisa de quatro opções.');
+        const choices=i.choices.map(x=>str(x,2,60,'a opção'));
+        if(new Set(choices.map(x=>x.toLowerCase())).size!==4||!choices.includes(answer)) throw new ApiError(400,'As quatro opções devem ser diferentes e conter a resposta correta.');
+        return {position,image_url:image,answer,choices};
+      });
+      const title=str(b.title||'Picture Challenge',2,80,'o título do jogo');
+      const game=check(await db.from('picture_games').upsert({lesson_id:lessonId,title},{onConflict:'lesson_id'}).select('id').single());
+      check(await db.from('picture_items').delete().eq('game_id',game.id));
+      check(await db.from('picture_items').insert(rows.map(row=>({...row,game_id:game.id}))));
+      return reply({ok:true});
     }
     if(action==='save-class') {
       const name=str(b.name,2,80,'o nome da turma');
