@@ -1,5 +1,9 @@
 # English Quest — Foundation v0.1
 
+O logotipo CNA exibido na entrada do aluno foi obtido do site oficial
+(`https://cna.com.br/wp-content/uploads/2024/08/logo-cna-idiomas-color.webp`).
+Ele é um ativo da marca CNA; a identidade English Quest é separada.
+
 Sistema de apoio às aulas de inglês para crianças. Esta entrega implementa a
 plataforma administrativa, não jogos, placares ou respostas simuladas.
 
