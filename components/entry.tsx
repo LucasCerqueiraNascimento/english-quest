@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Check, Eye, EyeOff, KeyRound, LockKeyhole, Rocket, ShieldCheck, Sparkles } from 'lucide-react';
 import { Notice } from './shared';
@@ -67,7 +68,7 @@ export function Entry() {
 
   return <div className="quest-page"><main className="quest-shell">
     <section className="quest-story" aria-label="Bem-vindo ao English Quest">
-      <div className="quest-brand"><span className="quest-brand-mark" aria-hidden="true">EQ<span>✦</span></span><span className="quest-brand-divider"/><span className="quest-brand-name">English Quest<small>Sua aventura em inglês</small></span></div>
+      <div className="quest-brand"><Image className="quest-cna-logo" src="/cna-logo.webp" alt="CNA Idiomas" width={150} height={40} priority/><span className="quest-brand-divider"/><span className="quest-brand-name">English Quest<small>Sua aventura em inglês</small></span></div>
       <span className="quest-float quest-float-one" aria-hidden="true">Let&apos;s play!</span>
       <span className="quest-float quest-float-two" aria-hidden="true">New words ✦</span>
       <div className="quest-story-content">
